@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ficha de Personagem D&amp;D</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="toolbar">
+  <h1>Ficha de Personagem <span>D&amp;D</span></h1>
+  <div class="actions">
+    <div class="group">
+      <span class="glabel">Assistente:</span>
+      <button type="button" id="btnAtributos">Atributos</button>
+      <button type="button" id="btnPV">Pontos de Vida</button>
+      <button type="button" data-redo="classe" title="Trocar a classe ou refazer as escolhas dela">Classe</button>
+      <button type="button" data-redo="subclasse" title="Escolher ou trocar a subclasse">Subclasse</button>
+      <button type="button" data-redo="especie" title="Trocar a espécie ou refazer as escolhas dela">Espécie</button>
+      <button type="button" data-redo="antecedente" title="Trocar o antecedente ou refazer as escolhas dele">Antecedente</button>
+    </div>
+    <div class="group">
+      <button id="btnNew" type="button">Nova ficha</button>
+      <button id="btnExport" type="button" title="Salva os dados da ficha em um arquivo .json">Salvar dados</button>
+      <label class="btn" for="fileImport">Abrir dados</label>
+      <input id="fileImport" type="file" accept=".json,application/json" hidden>
+      <button id="btnPrint" type="button" title="Imprime em A4 retrato. Para gerar PDF, escolha &quot;Salvar como PDF&quot;.">Imprimir / PDF</button>
+      <span id="saveStatus" class="status"></span>
+    </div>
+  </div>
+</header>
+
+<div id="toast" class="toast" role="status"></div>
+
+<datalist id="listaClasses"></datalist>
+<datalist id="listaSubclasses"></datalist>
+<datalist id="listaEspecies"></datalist>
+<datalist id="listaAntecedentes"></datalist>
+<datalist id="listaAlinhamentos">
+  <option value="Leal e Bom" label="Faz o que é esperado de uma pessoa correta">
+  <option value="Neutro e Bom" label="Ajuda os outros conforme suas necessidades">
+  <option value="Caótico e Bom" label="Age pela consciência, sem ligar para expectativas">
+  <option value="Leal e Neutro" label="Segue a lei, a tradição ou um código pessoal">
+  <option value="Neutro" label="Prefere evitar questões morais e não tomar partido">
+  <option value="Caótico e Neutro" label="Segue os próprios caprichos e valoriza a liberdade">
+  <option value="Leal e Mau" label="Pega o que quer dentro dos limites de um código">
+  <option value="Neutro e Mau" label="Faz o que quiser, desde que não seja punido">
+  <option value="Caótico e Mau" label="Age com violência arbitrária, por ganância ou crueldade">
+</datalist>
+
+<div id="sheetWrap">
+<form id="sheet" autocomplete="off" onsubmit="return false">
+
+<!-- ===================== FOLHA 1 ===================== -->
+<section class="page p1">
+
+  <div class="p1-top">
+    <div class="box identity">
+      <label class="wide">Nome do personagem<input name="nome"></label>
+      <label>Antecedente<input name="antecedente" list="listaAntecedentes"></label>
+      <label>Classe<input name="classe" list="listaClasses"></label>
+      <label>Espécie<input name="especie" list="listaEspecies"></label>
+      <label>Subclasse<input name="subclasse" list="listaSubclasses"></label>
+      <div class="lvl">
+        <label>Nível<input name="nivel" type="number" min="1" max="20" value="1"></label>
+        <label>Pontos de experiência<input name="xp" type="number" min="0"></label>
+        <small id="xpProx" class="xp-prox"></small>
+      </div>
+      <input type="hidden" name="nivel_aplicado" value="0">
+    </div>
+
+    <div class="box shield">
+      <div class="title">Classe de Armadura</div>
+      <input name="ca" type="number" class="big" value="10">
+      <label class="check"><input type="checkbox" name="escudo"> Escudo</label>
+      <input type="hidden" name="ca_auto">
+    </div>
+
+    <div class="box">
+      <div class="title" data-step="1">Pontos de Vida</div>
+      <div class="hp-grid">
+        <label>Atual<input name="pv_atual" type="number" class="big"></label>
+        <label>Temporários<input name="pv_temp" type="number"></label>
+        <label>Máximo<input name="pv_max" type="number"></label>
+      </div>
+    </div>
+
+    <div class="box">
+      <div class="title" data-step="1">Dados de Vida</div>
+      <label>Gastos<input name="dv_gastos" type="number" min="0"></label>
+      <label>Máximo<input name="dv_max"></label>
+    </div>
+
+    <div class="box">
+      <div class="title">Testes contra Morte</div>
+      <div class="death"><span>Sucessos</span>
+        <input type="checkbox" name="ms1"><input type="checkbox" name="ms2"><input type="checkbox" name="ms3"></div>
+      <div class="death"><span>Falhas</span>
+        <input type="checkbox" name="mf1" class="fail"><input type="checkbox" name="mf2" class="fail"><input type="checkbox" name="mf3" class="fail"></div>
+    </div>
+  </div>
+
+  <div class="logo">Dungeons <span>&amp;</span> Dragons</div>
+
+  <div class="stats-row">
+    <div class="box stat"><div class="title">Bônus de Proficiência</div><output id="profBonus" class="big">+2</output></div>
+    <div class="box stat"><div class="title">Iniciativa</div><output id="iniciativa" class="big">+0</output></div>
+    <div class="box stat"><div class="title" data-step="2">Deslocamento</div><input name="deslocamento" class="big"></div>
+    <div class="box stat"><div class="title" data-step="2">Tamanho</div><input name="tamanho" class="big"></div>
+    <div class="box stat"><div class="title">Percepção Passiva</div><output id="percPassiva" class="big">10</output></div>
+  </div>
+
+  <div class="p1-main">
+    <div class="p1-left">
+      <div class="abil-cols">
+        <div class="abil-col">
+          <div id="abilitiesA" class="abilities"></div>
+          <div class="box heroic-box">
+            <label class="check heroic"><input type="checkbox" name="inspiracao"> Inspiração Heroica</label>
+          </div>
+        </div>
+        <div class="abil-col"><div id="abilitiesB" class="abilities"></div></div>
+      </div>
+      <div class="box training">
+        <div class="title" data-step="1">Treinamento com Equipamentos e Proficiências</div>
+        <div class="armor">
+          <span>Armaduras:</span>
+          <label class="check"><input type="checkbox" name="arm_leve"> Leve</label>
+          <label class="check"><input type="checkbox" name="arm_media"> Média</label>
+          <label class="check"><input type="checkbox" name="arm_pesada"> Pesada</label>
+          <label class="check"><input type="checkbox" name="arm_escudos"> Escudos</label>
+        </div>
+        <div class="armor-worn">
+          <label>Armadura<select name="armadura" id="selArmadura" title="A armadura vestida define a Classe de Armadura"></select></label>
+          <small id="armInfo" class="arm-info"></small>
+        </div>
+        <div class="sub">Armas</div>
+        <textarea name="prof_armas" data-flow="Armas (treinamento)"></textarea>
+        <div class="sub">Ferramentas</div>
+        <textarea name="prof_ferramentas" data-flow="Ferramentas"></textarea>
+      </div>
+    </div>
+
+    <div class="p1-right">
+      <div class="box weapons has-tools" title="Bônus e dano em vermelho são calculados automaticamente; edite-os para desligar o cálculo da linha.">
+        <div class="title" data-step="1">Armas e Truques de Dano</div>
+        <div class="box-tools">
+          <button type="button" class="tool" id="btnArmaLista">+ Arma</button>
+          <button type="button" class="tool" id="btnTruqueDano">+ Truque</button>
+          <button type="button" class="tool" data-table="tblArmas">+ Linha</button>
+        </div>
+        <table class="dyn" id="tblArmas">
+          <colgroup><col style="width:30%"><col style="width:15%"><col style="width:22%"><col><col class="ctl-col"></colgroup>
+          <thead><tr><th>Nome</th><th>Ataque / CD</th><th>Dano e tipo</th><th>Notas</th><th></th></tr></thead>
+          <tbody data-rows="tblArmas"></tbody>
+        </table>
+      </div>
+
+      <div class="box">
+        <div class="title" data-step="1">Características de Classe</div>
+        <textarea name="caracteristicas_classe" data-flow="Características de Classe"></textarea>
+      </div>
+
+      <div class="p1-pair">
+        <div class="box">
+          <div class="title" data-step="2">Traços de Espécie</div>
+          <textarea name="tracos_especie" data-flow="Traços de Espécie"></textarea>
+        </div>
+        <div class="box">
+          <div class="title" data-step="2">Talentos</div>
+          <textarea name="talentos" data-flow="Talentos"></textarea>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== FOLHA 2 ===================== -->
+<section class="page p2">
+  <div class="logo small">D<span>&amp;</span>D</div>
+
+  <div class="p2-left">
+    <div class="box">
+      <div class="title" data-step="1">Habilidade de Conjuração</div>
+      <div class="spellcast">
+        <label>Habilidade
+          <select name="conj_hab">
+            <option value="">—</option>
+            <option value="int">Inteligência</option>
+            <option value="sab">Sabedoria</option>
+            <option value="car">Carisma</option>
+          </select>
+        </label>
+        <div class="mini"><output id="conjMod">—</output><span>Modificador</span></div>
+        <div class="mini"><output id="conjCD">—</output><span>CD de resistência</span></div>
+        <div class="mini"><output id="conjAtq">—</output><span>Bônus de ataque</span></div>
+        <div class="mini"><output id="conjPrep">—</output><span>Preparadas</span></div>
+        <div class="mini"><output id="conjMax">—</output><span>Nível máx.</span></div>
+      </div>
+    </div>
+
+    <div class="box">
+      <div class="title" data-step="1">Espaços de Magia</div>
+      <div class="slots" id="slots"><!-- gerado via JS --></div>
+    </div>
+
+    <div class="box spells has-tools">
+      <div class="title" data-step="1">Truques e Magias Preparadas</div>
+      <div class="box-tools">
+        <button type="button" class="tool" id="btnMagiaLista">+ Magia</button>
+        <button type="button" class="tool" data-table="tblMagias">+ Linha</button>
+      </div>
+      <table class="dyn" id="tblMagias">
+        <colgroup><col style="width:9mm"><col><col style="width:17mm"><col style="width:15mm"><col class="crm"><col class="crm"><col class="crm"><col style="width:26%"><col class="ctl-col"></colgroup>
+        <thead><tr><th>Nível</th><th>Nome</th><th>Tempo</th><th>Alcance</th><th title="Concentração">C</th><th title="Ritual">R</th><th title="Material">M</th><th>Notas</th><th></th></tr></thead>
+        <tbody data-rows="tblMagias"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="p2-right">
+    <div class="box">
+      <div class="title" data-step="4">Aparência</div>
+      <textarea name="aparencia" data-flow="Aparência"></textarea>
+    </div>
+    <div class="box">
+      <div class="title" data-step="4">História e Personalidade</div>
+      <textarea name="historia" data-flow="História e Personalidade"></textarea>
+      <label class="inline">Alinhamento<input name="alinhamento" list="listaAlinhamentos" title="Escolha da lista ou escreva"></label>
+    </div>
+    <div class="box">
+      <div class="title" data-step="2">Idiomas</div>
+      <textarea name="idiomas" data-flow="Idiomas"></textarea>
+    </div>
+    <div class="box">
+      <div class="title" data-step="2">Equipamento</div>
+      <textarea name="equipamento" data-flow="Equipamento"></textarea>
+      <div class="attune">
+        <div class="sub">Itens Mágicos Sintonizados</div>
+        <label class="check"><input type="checkbox" name="sint_ok1"><input name="sintonia1"></label>
+        <label class="check"><input type="checkbox" name="sint_ok2"><input name="sintonia2"></label>
+        <label class="check"><input type="checkbox" name="sint_ok3"><input name="sintonia3"></label>
+      </div>
+    </div>
+    <div class="box">
+      <div class="title" data-step="2">Moedas</div>
+      <div class="coins">
+        <label>PC<input name="pc" type="number" min="0"></label>
+        <label>PP<input name="pp" type="number" min="0"></label>
+        <label>PE<input name="pe" type="number" min="0"></label>
+        <label>PO<input name="po" type="number" min="0"></label>
+        <label>PL<input name="pl" type="number" min="0"></label>
+      </div>
+    </div>
+  </div>
+</section>
+</form>
+</div>
+
+<template id="rowArmas">
+  <tr>
+    <td><input data-col="nome"><input type="hidden" data-col="ref"></td>
+    <td><input data-col="bonus"></td>
+    <td><input data-col="dano"></td>
+    <td><input data-col="notas"></td>
+    <td class="ctl"><button type="button" class="del" title="Remover">×</button></td>
+  </tr>
+</template>
+
+<template id="rowMagias">
+  <tr>
+    <td><select data-col="nivel">
+      <option value=""></option><option value="T">T</option>
+      <option value="1">1º</option><option value="2">2º</option><option value="3">3º</option>
+      <option value="4">4º</option><option value="5">5º</option><option value="6">6º</option>
+      <option value="7">7º</option><option value="8">8º</option><option value="9">9º</option>
+    </select></td>
+    <td><input data-col="nome"><input type="hidden" data-col="origem"></td>
+    <td><input data-col="tempo"></td>
+    <td><input data-col="alcance"></td>
+    <td><input type="checkbox" data-col="c"></td>
+    <td><input type="checkbox" data-col="r"></td>
+    <td><input type="checkbox" data-col="m"></td>
+    <td><input data-col="notas"></td>
+    <td class="ctl"><button type="button" class="del" title="Remover">×</button></td>
+  </tr>
+</template>
+
+<dialog id="wizard" class="wizard">
+  <div class="wz-head">
+    <h2 id="wzTitle"></h2>
+    <button type="button" class="wz-x" id="wzClose" aria-label="Fechar">×</button>
+  </div>
+  <div class="wz-body" id="wzBody"></div>
+  <div class="wz-foot">
+    <button type="button" id="wzSkip">Pular</button>
+    <button type="button" id="wzApply" class="primary">Aplicar à ficha</button>
+  </div>
+</dialog>
+
+<dialog id="spellList" class="wizard spell-dlg">
+  <div class="wz-head">
+    <h2>Lista de Magias</h2>
+    <button type="button" class="wz-x" id="slClose" aria-label="Fechar">×</button>
+  </div>
+  <div class="sl-filtros">
+    <input id="slBusca" type="search" placeholder="Buscar pelo nome…">
+    <select id="slNivel">
+      <option value="">Todos os níveis</option>
+      <option value="0">Truques</option>
+      <option value="1">1º nível</option><option value="2">2º nível</option><option value="3">3º nível</option>
+      <option value="4">4º nível</option><option value="5">5º nível</option><option value="6">6º nível</option>
+      <option value="7">7º nível</option><option value="8">8º nível</option><option value="9">9º nível</option>
+    </select>
+    <select id="slClasse"><option value="">Todas as classes</option></select>
+  </div>
+  <div class="wz-body" id="slLista"></div>
+</dialog>
+
+<dialog id="spellInfo" class="wizard spell-dlg">
+  <div class="wz-head">
+    <h2 id="siNome"></h2>
+    <button type="button" class="wz-x" id="siClose" aria-label="Fechar">×</button>
+  </div>
+  <div class="wz-body" id="siBody"></div>
+</dialog>
+
+<script src="dados.js"></script>
+<script src="magias.js"></script>
+<script src="layout.js"></script>
+<script src="assistente.js"></script>
+<script src="lista-magias.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
